@@ -190,7 +190,7 @@
     }
 
     .qr {
-      width: 150px;
+      width: 240px;
       display: block;
       margin: 8px auto;
       border-radius: 10px;
@@ -254,17 +254,17 @@
 <div class="section">
   <h3>Products</h3>
 
-  <button class="product-btn" onclick="toggleQuantityMenu('Thai Tea', 5, this)">Thai Tea $5</button>
-  <div id="Thai Tea-menu" class="quantity-menu"></div>
+  <button class="product-btn" onclick="toggleQuantityMenu('Shirley Temple', 3, this)">Shirly Temple $3</button>
+  <div id="Shirley Temple-menu" class="quantity-menu"></div>
 
-  <button class="product-btn" onclick="toggleQuantityMenu('Cookie', 3, this)">Cookie $3</button>
-  <div id="Cookie-menu" class="quantity-menu"></div>
+  <button class="product-btn" onclick="toggleQuantityMenu('Dr. Pepper', 3, this)">Dr. Pepper $3</button>
+  <div id="Dr. Pepper-menu" class="quantity-menu"></div>
 
-  <button class="product-btn" onclick="toggleQuantityMenu('Combo', 7, this)">Combo $7</button>
-  <div id="Combo-menu" class="quantity-menu"></div>
+  <button class="product-btn" onclick="toggleQuantityMenu('Coke', 3, this)">Coke $3</button>
+  <div id="Coke-menu" class="quantity-menu"></div>
 
-  <button class="product-btn" onclick="toggleQuantityMenu('Brownie', 4, this)">Brownie $4</button>
-  <div id="Brownie-menu" class="quantity-menu"></div>
+  <button class="product-btn" onclick="toggleQuantityMenu('Soda', 2, this)">Soda $2</button>
+  <div id="Soda-menu" class="quantity-menu"></div>
 </div>
 
 <div class="section">
@@ -311,7 +311,7 @@ let employees = JSON.parse(localStorage.getItem("activeEmployees")) || [];
 let sales = JSON.parse(localStorage.getItem("sales")) || [];
 let selectedPayment = null;
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9jqD4g_0YrxscyuWBSwG6D0rhoCb2KDBTJhE6ThhHBHT1QCZHwo7RBltgw4vXuEAA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9JqD4g_OYrxscyuWBSwG6dOrhoCb2KDBTJhE6ThhHBJT1QCZHwo7RBltgw4vXuEAA/exec";
 
 function saveEmployees() {
   localStorage.setItem("activeEmployees", JSON.stringify(employees));
@@ -443,7 +443,7 @@ function showPaymentDetails(payment) {
     details.innerHTML = `
       <strong>Zelle Payment</strong><br>
       Total: $${total.toFixed(2)}
-      <img src="zelle-qr.png" class="qr" alt="Zelle QR Code">
+      <img src="IMG_1677.jpeg" class="qr" alt="Zelle QR Code">
     `;
   }
 
