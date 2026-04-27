@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mobile Sales Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 15px;
+      background: #f4f4f4;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+    }
+
+    .section {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    button, input {
+      padding: 16px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+    }
+
+    .submit {
+      background: #2196f3;
+      color: white;
+      font-size: 22px;
+    }
+
+    .danger {
+      background: #e53935;
+      color: white;
+    }
+
+    .selected {
+      background: #4caf50;
+      color: white;
+    }
+
+    .quantity-menu {
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 8px 0 15px 0;
+    }
+
+    .quantity-menu.open {
+      display: grid;
+    }
+
+    .quantity-menu button {
+      background: #4caf50;
+      color: white;
+      font-size: 18px;
+    }
+
+    .cart-item, .sale, .employee-tag {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+      font-size: 15px;
+    }
+
+    .total {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Sales Tracker</h1>
+
+  <div class="section">
+    <h2>Current Sale Total</h2>
+    <p class="total">$<span id="cartTotal">0.00</span></p>
+  </div>
+
+  <div class="section">
+    <h3>Select Product + Quantity</h3>
+
+    <button onclick="toggleQuantityMenu('Shirley Temple', 3.00)">Shirley Temple - $3.00</button>
+    <div id="Shirley Temple-menu" class="quantity-menu"></div>
+
+    <button onclick="toggleQuantityMenu('Dr. Pepper', 3.00)">Dr. Pepper - $3.00</button>
+    <div id="Dr. Pepper-menu" class="quantity-menu"></div>
+
+    <button onclick="toggleQuantityMenu('Coke', 3.00)">Coke - $3.00</button>
+    <div id="Coke-menu" class="quantity-menu"></div>
+
+    <button onclick="toggleQuantityMenu('Soda', 2.00)">Soda - $2.00</button>
+    <div id="Soda-menu" class="quantity-menu"></div>
+  </div>
+
+  <div class="section">
+    <h3>Current Cart</h3>
+    <div id="cartLog"></div>
+    <button class="danger" onclick="clearCart()">Clear Current Cart</button>
+  </div>
+
+  <div class="section">
+    <h3>Payment Method</h3>
+    <div class="grid">
+      <button onclick="selectPayment('Cash', this)">Cash</button>
+      <button onclick="selectPayment('Zelle', this)">Zelle</button>
+      <button onclick="selectPayment('Venmo', this)">Venmo</button>
+      <button onclick="selectPayment('Card', this)">Cashapp</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Active Employee Numbers</h3>
+
+    <input id="employeeInput" type="number" placeholder="Enter employee number">
+    <button onclick="addEmployee()">Add Employee</button>
+
+    <div id="employeeLog"></div>
+  </div>
+
+  <button class="submit" onclick="submitSale()">Submit Full Sale</button>
+
+  <div class="section">
+    <h2>Total Sales: $<span id="totalSales">0.00</span></h2>
+    <button onclick="exportCSV()">Export to Excel / CSV</button>
+    <button class="danger" onclick="clearSales()">Clear All Sales</button>
+  </div>
+
+  <div class="section">
+    <h3>Sales Log</h3>
+    <div id="salesLog"></div>
+  </div>
+
+  <script>
+    let selectedPayment = null;
+
+    let cart = [];
+    let employees = JSON.parse(localStorage.getItem("activeEmployees")) || [];
+    let sales = JSON.parse(localStorage.getItem("sales")) || [];
+
+    const GOOGLE_SCRIPT_URL = "";
+
+    function saveSales() {
+      localStorage.setItem("sales", JSON.stringify(sales));
+    }
+
+    function saveEmployees() {
+      localStorage.setItem("activeEmployees", JSON.stringify(employees));
+    }
+
+    function toggleQuantityMenu(product, price) {
+      document.querySelectorAll(".quantity-menu").forEach(menu => {
+        menu.classList.remove("open");
+        menu.innerHTML = "";
+      });
+
+      const menu = document.getElementById(product + "-menu");
+
+      for (let i = 1; i <= 10; i++) {
+        const button = document.createElement("button");
+        button.textContent = i;
+
+        button.onclick = function () {
+          addProductToCart(product, price, i);
+        };
+
+        menu.appendChild(button);
+      }
+
+      menu.classList.add("open");
+    }
+
+    function addProductToCart(product, price, quantity) {
+      const existingItem = cart.find(item => item.product === product);
+
+      if (existingItem) {
+        existingItem.quantity += quantity;
+        existingItem.total = existingItem.price * existingItem.quantity;
+      } else {
+        cart.push({
+          product: product,
+          price: price,
+          quantity: quantity,
+          total: price * quantity
+        });
+      }
+
+      document.querySelectorAll(".quantity-menu").forEach(menu => {
+        menu.classList.remove("open");
+        menu.innerHTML = "";
+      });
+
+      displayCart();
+    }
+
+    function displayCart() {
+      const cartLog = document.getElementById("cartLog");
+      const cartTotalDisplay = document.getElementById("cartTotal");
+
+      cartLog.innerHTML = "";
+
+      let cartTotal = 0;
+
+      cart.forEach((item, index) => {
+        cartTotal += item.total;
+
+        const div = document.createElement("div");
+        div.className = "cart-item";
+
+        div.innerHTML = `
+          <strong>${item.product}</strong> x${item.quantity}<br>
+          $${item.price.toFixed(2)} each → <strong>$${item.total.toFixed(2)}</strong><br>
+          <button class="danger" onclick="removeCartItem(${index})">Remove</button>
+        `;
+
+        cartLog.appendChild(div);
+      });
+
+      cartTotalDisplay.textContent = cartTotal.toFixed(2);
+    }
+
+    function removeCartItem(index) {
+      cart.splice(index, 1);
+      displayCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      displayCart();
+    }
+
+    function selectPayment(payment, button) {
+      selectedPayment = payment;
+
+      const paymentButtons = button.parentElement.querySelectorAll("button");
+
+      paymentButtons.forEach(btn => {
+        btn.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+    }
+
+    function addEmployee() {
+      const employeeInput = document.getElementById("employeeInput");
+      const employeeNumber = employeeInput.value;
+
+      if (!employeeNumber) {
+        alert("Enter an employee number.");
+        return;
+      }
+
+      if (!employees.includes(employeeNumber)) {
+        employees.push(employeeNumber);
+        saveEmployees();
+      }
+
+      employeeInput.value = "";
+      displayEmployees();
+    }
+
+    function displayEmployees() {
+      const employeeLog = document.getElementById("employeeLog");
+
+      employeeLog.innerHTML = "";
+
+      employees.forEach((employee, index) => {
+        const div = document.createElement("div");
+        div.className = "employee-tag";
+
+        div.innerHTML = `
+          Employee #${employee}
+          <button class="danger" onclick="removeEmployee(${index})">Remove</button>
+        `;
+
+        employeeLog.appendChild(div);
+      });
+    }
+
+    function removeEmployee(index) {
+      employees.splice(index, 1);
+      saveEmployees();
+      displayEmployees();
+    }
+
+    function submitSale() {
+      if (cart.length === 0) {
+        alert("Add at least one product to the sale.");
+        return;
+      }
+
+      if (!selectedPayment) {
+        alert("Select a payment method.");
+        return;
+      }
+
+      if (employees.length === 0) {
+        alert("Add at least one employee number.");
+        return;
+      }
+
+      const saleTotal = cart.reduce((sum, item) => sum + item.total, 0);
+
+      const sale = {
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        items: [...cart],
+        total: saleTotal,
+        payment: selectedPayment,
+        employees: [...employees]
+      };
+
+      sales.push(sale);
+      saveSales();
+      sendToGoogleSheets(sale);
+
+      cart = [];
+
+      displayCart();
+      displayEmployees();
+      displaySales();
+    }
+
+    function displaySales() {
+      const log = document.getElementById("salesLog");
+      const totalSales = document.getElementById("totalSales");
+
+      log.innerHTML = "";
+
+      let total = 0;
+
+      sales.slice().reverse().forEach(sale => {
+        total += sale.total;
+
+        const itemList = sale.items.map(item => {
+          return `${item.product} x${item.quantity} ($${item.total.toFixed(2)})`;
+        }).join("<br>");
+
+        const employeeList = sale.employees
+          ? sale.employees.join(", ")
+          : sale.employee;
+
+        const div = document.createElement("div");
+        div.className = "sale";
+
+        div.innerHTML = `
+          <strong>Sale Total: $${sale.total.toFixed(2)}</strong><br>
+          ${itemList}<br>
+          Payment: ${sale.payment}<br>
+          Employees: ${employeeList}<br>
+          ${sale.date} ${sale.time}
+        `;
+
+        log.appendChild(div);
+      });
+
+      totalSales.textContent = total.toFixed(2);
+    }
+
+    function exportCSV() {
+      let csv = "Date,Time,Product,Price,Quantity,Item Total,Sale Total,Payment,Employees\n";
+
+      sales.forEach(sale => {
+        const employeeList = sale.employees
+          ? sale.employees.join(" / ")
+          : sale.employee;
+
+        sale.items.forEach(item => {
+          csv += `${sale.date},${sale.time},${item.product},${item.price},${item.quantity},${item.total},${sale.total},${sale.payment},${employeeList}\n`;
+        });
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sales_data.csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function clearSales() {
+      if (confirm("Clear all sales?")) {
+        sales = [];
+        saveSales();
+        displaySales();
+      }
+    }
+
+    function sendToGoogleSheets(sale) {
+      if (!GOOGLE_SCRIPT_URL) return;
+
+      sale.items.forEach(item => {
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            date: sale.date,
+            time: sale.time,
+            product: item.product,
+            price: item.price,
+            quantity: item.quantity,
+            itemTotal: item.total,
+            saleTotal: sale.total,
+            payment: sale.payment,
+            employees: sale.employees.join(" / ")
+          })
+        });
+      });
+    }
+
+    displayCart();
+    displayEmployees();
+    displaySales();
+  </script>
+
+</body>
+</html>
