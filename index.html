@@ -1,3 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Compact Sales Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 8px;
+      background: #f4f4f4;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin: 5px 0;
+    }
+
+    .section {
+      background: white;
+      padding: 8px;
+      margin-bottom: 7px;
+      border-radius: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    button, input {
+      padding: 9px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 4px;
+    }
+
+    button {
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+    }
+
+    .quantity-menu {
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .quantity-menu.open {
+      display: grid;
+    }
+
+    .quantity-menu button {
+      background: #4caf50;
+      color: white;
+    }
+
+    .submit {
+      background: #2196f3;
+      color: white;
+      font-size: 18px;
+      padding: 12px;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    .danger {
+      background: #e53935;
+      color: white;
+    }
+
+    .selected {
+      background: #4caf50;
+      color: white;
+    }
+
+    .cart-item, .sale, .employee-tag {
+      border-bottom: 1px solid #ccc;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+
+    .total {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin: 2px 0;
+    }
+
+    .qr {
+      width: 150px;
+      display: block;
+      margin: 8px auto;
+      border-radius: 8px;
+    }
+
+    .payment-details {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Sales Tracker</h1>
+
+<div class="section">
+  <h2 class="total">$<span id="cartTotal">0.00</span></h2>
+</div>
+
+<div class="section">
+  <h3>Products</h3>
+
+  <button onclick="toggleQuantityMenu('Thai Tea', 5)">Thai Tea $5</button>
+  <div id="Thai Tea-menu" class="quantity-menu"></div>
+
+  <button onclick="toggleQuantityMenu('Cookie', 3)">Cookie $3</button>
+  <div id="Cookie-menu" class="quantity-menu"></div>
+
+  <button onclick="toggleQuantityMenu('Combo', 7)">Combo $7</button>
+  <div id="Combo-menu" class="quantity-menu"></div>
+
+  <button onclick="toggleQuantityMenu('Brownie', 4)">Brownie $4</button>
+  <div id="Brownie-menu" class="quantity-menu"></div>
+</div>
+
+<div class="section">
+  <h3>Cart</h3>
+  <div id="cartLog"></div>
+</div>
+
+<div class="section">
+  <h3>Payment</h3>
+  <div class="grid">
+    <button onclick="selectPayment('Cash', this)">Cash</button>
+    <button onclick="selectPayment('Zelle', this)">Zelle</button>
+    <button onclick="selectPayment('Venmo', this)">Venmo</button>
+    <button onclick="selectPayment('Card', this)">Card</button>
+  </div>
+
+  <div id="paymentDetails" class="payment-details"></div>
+</div>
+
+<button class="submit" onclick="submitSale()">Submit Purchase</button>
+
+<div class="section">
+  <h3>Active Employees</h3>
+  <input id="employeeInput" placeholder="Employee #">
+  <button onclick="addEmployee()">Add Employee</button>
+  <div id="employeeLog"></div>
+</div>
+
+<div class="section">
+  <h3>Sales Log</h3>
+  <div id="salesLog"></div>
+</div>
+
 <script>
 let cart = [];
 let employees = JSON.parse(localStorage.getItem("activeEmployees")) || [];
@@ -75,20 +242,17 @@ function closeMenus() {
 
 function displayCart() {
   const log = document.getElementById("cartLog");
-  let total = 0;
+  const total = getCartTotal();
 
   log.innerHTML = "";
 
   cart.forEach((item, index) => {
-    total += item.total;
-
     const div = document.createElement("div");
     div.className = "cart-item";
     div.innerHTML = `
       ${item.product} x${item.quantity} = $${item.total.toFixed(2)}
       <button class="danger" onclick="removeItem(${index})">Remove</button>
     `;
-
     log.appendChild(div);
   });
 
@@ -155,7 +319,8 @@ function showPaymentDetails(payment) {
 
 function calculateChange() {
   const total = getCartTotal();
-  const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
+  const cashGivenInput = document.getElementById("cashGiven");
+  const cashGiven = parseFloat(cashGivenInput.value) || 0;
   const change = cashGiven - total;
 
   document.getElementById("changeDue").innerText =
@@ -246,13 +411,8 @@ function submitSale() {
   sendToGoogleSheets(sale);
 
   cart = [];
-
   displayCart();
   displaySales();
-
-  if (selectedPayment) {
-    showPaymentDetails(selectedPayment);
-  }
 }
 
 function displaySales() {
@@ -267,8 +427,10 @@ function displaySales() {
     let cashInfo = "";
 
     if (sale.payment === "Cash") {
-      cashInfo = `<br>Cash Given: $${Number(sale.cashGiven).toFixed(2)}
-                  <br>Change: $${Number(sale.changeDue).toFixed(2)}`;
+      cashInfo = `
+        <br>Cash Given: $${Number(sale.cashGiven).toFixed(2)}
+        <br>Change: $${Number(sale.changeDue).toFixed(2)}
+      `;
     }
 
     const div = document.createElement("div");
@@ -290,3 +452,6 @@ displayCart();
 displayEmployees();
 displaySales();
 </script>
+
+</body>
+</html>
