@@ -1,56 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Compact Sales Tracker</title>
+  <title>Sales Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --soft-blue: #e0ecff;
+      --soft-green: #dcfce7;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 8px;
-      background: #f4f4f4;
+      padding: 10px;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    h1, h2, h3 {
+    h1 {
+      text-align: center;
+      margin: 8px 0 10px;
+      color: var(--primary-dark);
+      font-size: 26px;
+    }
+
+    h2, h3 {
       text-align: center;
       margin: 5px 0;
     }
 
     .section {
-      background: white;
-      padding: 8px;
-      margin-bottom: 7px;
-      border-radius: 10px;
+      background: var(--card);
+      padding: 10px;
+      margin-bottom: 9px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .total-card {
+      background: linear-gradient(135deg, #2563eb, #16a34a);
+      color: white;
+      border: none;
+    }
+
+    .total {
+      font-size: 30px;
+      font-weight: bold;
+      text-align: center;
+      margin: 2px 0;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      gap: 7px;
     }
 
     button, input {
-      padding: 9px;
+      padding: 10px;
       font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      border-radius: 10px;
+      border: 1px solid var(--border);
       width: 100%;
       box-sizing: border-box;
-      margin-top: 4px;
+      margin-top: 5px;
     }
 
     button {
       border: none;
-      background: #ddd;
+      background: #e5e7eb;
+      color: var(--text);
       cursor: pointer;
+      transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+    }
+
+    button:hover {
+      background: #d1d5db;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .product-btn {
+      background: var(--soft-blue);
+      color: var(--primary-dark);
+      font-weight: bold;
+    }
+
+    .product-btn:hover,
+    .product-btn.active-product {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 3px 8px rgba(37,99,235,0.25);
     }
 
     .quantity-menu {
       display: none;
       grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-      margin-top: 4px;
+      gap: 6px;
+      margin-top: 5px;
     }
 
     .quantity-menu.open {
@@ -58,54 +120,124 @@
     }
 
     .quantity-menu button {
-      background: #4caf50;
+      background: var(--soft-green);
+      color: var(--success-dark);
+      font-weight: bold;
+    }
+
+    .quantity-menu button:hover,
+    .quantity-menu button:active {
+      background: var(--success);
       color: white;
     }
 
     .submit {
-      background: #2196f3;
+      background: var(--primary);
       color: white;
       font-size: 18px;
-      padding: 12px;
+      font-weight: bold;
+      padding: 13px;
       position: sticky;
       bottom: 0;
       z-index: 10;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
+    }
+
+    .submit:hover,
+    .submit:active {
+      background: var(--primary-dark);
     }
 
     .danger {
-      background: #e53935;
+      background: #fee2e2;
+      color: var(--danger);
+      font-weight: bold;
+    }
+
+    .danger:hover,
+    .danger:active {
+      background: var(--danger);
       color: white;
     }
 
     .selected {
-      background: #4caf50;
-      color: white;
+      background: var(--success) !important;
+      color: white !important;
+      box-shadow: 0 3px 8px rgba(22,163,74,0.25);
+    }
+
+    input {
+      background: #f9fafb;
+      color: var(--text);
+    }
+
+    input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+      background: white;
     }
 
     .cart-item, .sale, .employee-tag {
-      border-bottom: 1px solid #ccc;
-      padding: 5px 0;
-      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      padding: 7px 0;
+      font-size: 14px;
     }
 
-    .total {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      margin: 2px 0;
+    .cart-item:last-child,
+    .sale:last-child,
+    .employee-tag:last-child {
+      border-bottom: none;
     }
 
     .qr {
       width: 150px;
       display: block;
       margin: 8px auto;
-      border-radius: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
     }
 
     .payment-details {
       text-align: center;
       font-size: 14px;
-      margin-top: 6px;
+      margin-top: 7px;
+      color: var(--muted);
+    }
+
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .collapsible-header h3 {
+      margin: 0;
+      text-align: left;
+    }
+
+    .collapse-btn {
+      width: auto;
+      padding: 8px 12px;
+      background: var(--soft-blue);
+      color: var(--primary-dark);
+      font-weight: bold;
+      margin: 0;
+    }
+
+    #salesLogWrapper {
+      display: none;
+      margin-top: 8px;
+    }
+
+    #salesLogWrapper.open {
+      display: block;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
     }
   </style>
 </head>
@@ -114,23 +246,24 @@
 
 <h1>Sales Tracker</h1>
 
-<div class="section">
+<div class="section total-card">
   <h2 class="total">$<span id="cartTotal">0.00</span></h2>
+  <div class="muted" style="color:white;">Current Sale Total</div>
 </div>
 
 <div class="section">
   <h3>Products</h3>
 
-  <button onclick="toggleQuantityMenu('Thai Tea', 5)">Thai Tea $5</button>
+  <button class="product-btn" onclick="toggleQuantityMenu('Thai Tea', 5, this)">Thai Tea $5</button>
   <div id="Thai Tea-menu" class="quantity-menu"></div>
 
-  <button onclick="toggleQuantityMenu('Cookie', 3)">Cookie $3</button>
+  <button class="product-btn" onclick="toggleQuantityMenu('Cookie', 3, this)">Cookie $3</button>
   <div id="Cookie-menu" class="quantity-menu"></div>
 
-  <button onclick="toggleQuantityMenu('Combo', 7)">Combo $7</button>
+  <button class="product-btn" onclick="toggleQuantityMenu('Combo', 7, this)">Combo $7</button>
   <div id="Combo-menu" class="quantity-menu"></div>
 
-  <button onclick="toggleQuantityMenu('Brownie', 4)">Brownie $4</button>
+  <button class="product-btn" onclick="toggleQuantityMenu('Brownie', 4, this)">Brownie $4</button>
   <div id="Brownie-menu" class="quantity-menu"></div>
 </div>
 
@@ -161,9 +294,15 @@
 </div>
 
 <div class="section">
-  <h3>Sales Log</h3>
-  <button class="danger" onclick="clearSalesLog()">Clear Local Sales Log</button>
-  <div id="salesLog"></div>
+  <div class="collapsible-header">
+    <h3>Local Sales Log</h3>
+    <button class="collapse-btn" onclick="toggleSalesLog()">Show</button>
+  </div>
+
+  <div id="salesLogWrapper">
+    <button class="danger" onclick="clearSalesLog()">Clear Local Sales Log</button>
+    <div id="salesLog"></div>
+  </div>
 </div>
 
 <script>
@@ -172,7 +311,7 @@ let employees = JSON.parse(localStorage.getItem("activeEmployees")) || [];
 let sales = JSON.parse(localStorage.getItem("sales")) || [];
 let selectedPayment = null;
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9JqD4g_OYrxscyuWBSwG6dOrhoCb2KDBTJhE6ThhHBJT1QCZHwo7RBltgw4vXuEAA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9jqD4g_0YrxscyuWBSwG6D0rhoCb2KDBTJhE6ThhHBHT1QCZHwo7RBltgw4vXuEAA/exec";
 
 function saveEmployees() {
   localStorage.setItem("activeEmployees", JSON.stringify(employees));
@@ -197,11 +336,17 @@ function getCartTotal() {
   return cart.reduce((sum, item) => sum + item.total, 0);
 }
 
-function toggleQuantityMenu(product, price) {
+function toggleQuantityMenu(product, price, clickedButton) {
   document.querySelectorAll(".quantity-menu").forEach(menu => {
     menu.classList.remove("open");
     menu.innerHTML = "";
   });
+
+  document.querySelectorAll(".product-btn").forEach(button => {
+    button.classList.remove("active-product");
+  });
+
+  clickedButton.classList.add("active-product");
 
   const menu = document.getElementById(product + "-menu");
 
@@ -239,6 +384,10 @@ function closeMenus() {
     menu.classList.remove("open");
     menu.innerHTML = "";
   });
+
+  document.querySelectorAll(".product-btn").forEach(button => {
+    button.classList.remove("active-product");
+  });
 }
 
 function displayCart() {
@@ -247,12 +396,16 @@ function displayCart() {
 
   log.innerHTML = "";
 
+  if (cart.length === 0) {
+    log.innerHTML = `<div class="muted">No items added yet.</div>`;
+  }
+
   cart.forEach((item, index) => {
     const div = document.createElement("div");
     div.className = "cart-item";
 
     div.innerHTML = `
-      ${item.product} x${item.quantity} = $${item.total.toFixed(2)}
+      <strong>${item.product}</strong> x${item.quantity} = $${item.total.toFixed(2)}
       <button class="danger" onclick="removeItem(${index})">Remove</button>
     `;
 
@@ -348,6 +501,10 @@ function displayEmployees() {
   const log = document.getElementById("employeeLog");
   log.innerHTML = "";
 
+  if (employees.length === 0) {
+    log.innerHTML = `<div class="muted">No active employees.</div>`;
+  }
+
   employees.forEach((employee, index) => {
     const div = document.createElement("div");
     div.className = "employee-tag";
@@ -417,11 +574,19 @@ function submitSale() {
   cart = [];
   displayCart();
   displaySales();
+
+  if (selectedPayment) {
+    showPaymentDetails(selectedPayment);
+  }
 }
 
 function displaySales() {
   const log = document.getElementById("salesLog");
   log.innerHTML = "";
+
+  if (sales.length === 0) {
+    log.innerHTML = `<div class="muted">No local sales logged.</div>`;
+  }
 
   sales.slice().reverse().forEach(sale => {
     const items = sale.items
@@ -450,6 +615,14 @@ function displaySales() {
 
     log.appendChild(div);
   });
+}
+
+function toggleSalesLog() {
+  const wrapper = document.getElementById("salesLogWrapper");
+  const button = document.querySelector(".collapse-btn");
+
+  wrapper.classList.toggle("open");
+  button.innerText = wrapper.classList.contains("open") ? "Hide" : "Show";
 }
 
 function clearSalesLog() {
