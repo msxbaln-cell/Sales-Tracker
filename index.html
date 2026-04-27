@@ -162,6 +162,7 @@
 
 <div class="section">
   <h3>Sales Log</h3>
+  <button class="danger" onclick="clearSalesLog()">Clear Local Sales Log</button>
   <div id="salesLog"></div>
 </div>
 
@@ -249,10 +250,12 @@ function displayCart() {
   cart.forEach((item, index) => {
     const div = document.createElement("div");
     div.className = "cart-item";
+
     div.innerHTML = `
       ${item.product} x${item.quantity} = $${item.total.toFixed(2)}
       <button class="danger" onclick="removeItem(${index})">Remove</button>
     `;
+
     log.appendChild(div);
   });
 
@@ -287,7 +290,7 @@ function showPaymentDetails(payment) {
     details.innerHTML = `
       <strong>Zelle Payment</strong><br>
       Total: $${total.toFixed(2)}
-      <img src="IMG_1677.jpeg" class="qr" alt="Zelle QR Code">
+      <img src="zelle-qr.png" class="qr" alt="Zelle QR Code">
     `;
   }
 
@@ -319,8 +322,7 @@ function showPaymentDetails(payment) {
 
 function calculateChange() {
   const total = getCartTotal();
-  const cashGivenInput = document.getElementById("cashGiven");
-  const cashGiven = parseFloat(cashGivenInput.value) || 0;
+  const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
   const change = cashGiven - total;
 
   document.getElementById("changeDue").innerText =
@@ -349,10 +351,12 @@ function displayEmployees() {
   employees.forEach((employee, index) => {
     const div = document.createElement("div");
     div.className = "employee-tag";
+
     div.innerHTML = `
       Employee #${employee}
       <button class="danger" onclick="removeEmployee(${index})">Remove</button>
     `;
+
     log.appendChild(div);
   });
 }
@@ -446,6 +450,14 @@ function displaySales() {
 
     log.appendChild(div);
   });
+}
+
+function clearSalesLog() {
+  if (confirm("Clear local sales log on this device? This will not delete Google Sheet records.")) {
+    sales = [];
+    localStorage.removeItem("sales");
+    displaySales();
+  }
 }
 
 displayCart();
