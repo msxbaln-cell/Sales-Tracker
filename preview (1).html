@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sales Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --success: #22c55e;
+      --success-dark: #16a34a;
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --soft-blue: #1e3a8a;
+      --soft-green: #14532d;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    h1 {
+      text-align: center;
+      margin: 8px 0 10px;
+      color: var(--primary-dark);
+      font-size: 26px;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin: 5px 0;
+    }
+
+    .section {
+      background: var(--card);
+      padding: 10px;
+      margin-bottom: 9px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .total-card {
+      background: linear-gradient(135deg, #2563eb, #16a34a);
+      color: white;
+      border: none;
+    }
+
+    .total {
+      font-size: 30px;
+      font-weight: bold;
+      text-align: center;
+      margin: 2px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    button, input {
+      padding: 10px;
+      font-size: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 5px;
+    }
+
+    button {
+      border: none;
+      background: #334155;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+    }
+
+    button:hover {
+      background: #475569;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .product-btn {
+      background: var(--soft-blue);
+      color: #bfdbfe;
+      font-weight: bold;
+    }
+
+    .product-btn:hover,
+    .product-btn.active-product {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 3px 8px rgba(37,99,235,0.25);
+    }
+
+    .quantity-menu {
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .quantity-menu.open {
+      display: grid;
+    }
+
+    .quantity-menu button {
+      background: var(--soft-green);
+      color: #bbf7d0;
+      font-weight: bold;
+    }
+
+    .quantity-menu button:hover,
+    .quantity-menu button:active {
+      background: var(--success);
+      color: white;
+    }
+
+    .submit {
+      background: var(--primary);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 13px;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
+    }
+
+    .submit:hover,
+    .submit:active {
+      background: var(--primary-dark);
+    }
+
+    .danger {
+      background: #7f1d1d;
+      color: #fecaca;
+      font-weight: bold;
+    }
+
+    .danger:hover,
+    .danger:active {
+      background: var(--danger);
+      color: white;
+    }
+
+    .remove-btn {
+      background: #7f1d1d;
+      color: #fecaca;
+      font-size: 12px;
+      padding: 4px 8px;
+      margin-left: 8px;
+      border-radius: 6px;
+      display: inline-block;
+      width: auto;
+      min-width: 32px;
+      flex-shrink: 0;
+    }
+
+    .remove-btn:hover,
+    .remove-btn:active {
+      background: var(--danger);
+      color: white;
+    }
+
+    .selected {
+      background: var(--success) !important;
+      color: white !important;
+      box-shadow: 0 3px 8px rgba(22,163,74,0.25);
+    }
+
+    input {
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+      background: #111827;
+    }
+
+    .cart-item, .sale, .employee-tag {
+      border-bottom: 1px solid var(--border);
+      padding: 7px 0;
+      font-size: 14px;
+    }
+
+    .cart-item, .employee-tag {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cart-item:last-child,
+    .sale:last-child,
+    .employee-tag:last-child {
+      border-bottom: none;
+    }
+
+    .qr {
+      width: 240px;
+      display: block;
+      margin: 8px auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .payment-details {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 7px;
+      color: var(--muted);
+    }
+
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .collapsible-header h3 {
+      margin: 0;
+      text-align: left;
+    }
+
+    .collapse-btn {
+      width: auto;
+      padding: 8px 12px;
+      background: var(--soft-blue);
+      color: #bfdbfe;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    #salesLogWrapper {
+      display: none;
+      margin-top: 8px;
+    }
+
+    #salesLogWrapper.open {
+      display: block;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .fundraiser-badge {
+      text-align: center;
+      font-weight: bold;
+      color: var(--primary-dark);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .small-btn {
+      font-size: 13px;
+      padding: 7px;
+      width: auto;
+      display: block;
+      margin: 6px auto 0;
+      background: var(--soft-blue);
+      color: #bfdbfe;
+      font-weight: bold;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<h1>Sales Tracker</h1>
+
+<div class="section">
+  <div class="fundraiser-badge">Fundraiser: <span id="fundraiserNameDisplay"></span></div>
+  <button class="small-btn" onclick="changeFundraiserName()">Change Fundraiser</button>
+</div>
+
+<div class="section total-card">
+  <h2 class="total">$<span id="cartTotal">0.00</span></h2>
+  <div class="muted" style="color:white;">Current Sale Total</div>
+</div>
+
+<div class="section">
+  <h3>Products</h3>
+
+  <button class="product-btn" onclick="toggleQuantityMenu('Shirley Temple', 3, this)">Shirly Temple $3</button>
+  <div id="Shirley Temple-menu" class="quantity-menu"></div>
+
+  <button class="product-btn" onclick="toggleQuantityMenu('Dr. Pepper', 3, this)">Dr. Pepper $3</button>
+  <div id="Dr. Pepper-menu" class="quantity-menu"></div>
+
+  <button class="product-btn" onclick="toggleQuantityMenu('Coke', 3, this)">Coke $3</button>
+  <div id="Coke-menu" class="quantity-menu"></div>
+
+  <button class="product-btn" onclick="toggleQuantityMenu('Soda', 2, this)">Soda $2</button>
+  <div id="Soda-menu" class="quantity-menu"></div>
+</div>
+
+<div class="section">
+  <h3>Cart</h3>
+  <div id="cartLog"></div>
+</div>
+
+<div class="section">
+  <h3>Payment</h3>
+  <div class="grid">
+    <button onclick="selectPayment('Cash', this)">Cash</button>
+    <button onclick="selectPayment('Zelle', this)">Zelle</button>
+    <button onclick="selectPayment('Venmo', this)">Venmo</button>
+    <button onclick="selectPayment('Card', this)">Card</button>
+  </div>
+
+  <div id="paymentDetails" class="payment-details"></div>
+</div>
+
+<button class="submit" onclick="submitSale()">Submit Purchase</button>
+
+<div class="section">
+  <h3>Active Initials</h3>
+  <input id="employeeInput" placeholder="Initials" maxlength="3">
+  <button onclick="addEmployee()">Add Initials</button>
+  <div id="employeeLog"></div>
+</div>
+
+<div class="section">
+  <div class="collapsible-header">
+    <h3>Local Sales Log</h3>
+    <button class="collapse-btn" onclick="toggleSalesLog()">Show</button>
+  </div>
+
+  <div id="salesLogWrapper">
+    <button class="danger" onclick="clearSalesLog()">Clear Local Sales Log</button>
+    <div id="salesLog"></div>
+  </div>
+</div>
+
+<script>
+let cart = [];
+let employees = JSON.parse(localStorage.getItem("activeEmployees")) || [];
+let sales = JSON.parse(localStorage.getItem("sales")) || [];
+let selectedPayment = null;
+
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKpE4_so4sLC9zcnrqEzsbJ-wCnrUTN7xMG1LxHWEN1x0cxCqUx6y5PLqYrllLnJZF/exec";
+
+let fundraiserName = localStorage.getItem("fundraiserName");
+
+if (!fundraiserName) {
+  fundraiserName = prompt("Enter fundraiser name:") || "Unnamed Fundraiser";
+  localStorage.setItem("fundraiserName", fundraiserName);
+}
+
+function displayFundraiserName() {
+  document.getElementById("fundraiserNameDisplay").innerText = fundraiserName;
+}
+
+function changeFundraiserName() {
+  const newName = prompt("Enter new fundraiser name:", fundraiserName);
+
+  if (newName && newName.trim() !== "") {
+    fundraiserName = newName.trim();
+    localStorage.setItem("fundraiserName", fundraiserName);
+    displayFundraiserName();
+  }
+}
+
+function saveEmployees() {
+  localStorage.setItem("activeEmployees", JSON.stringify(employees));
+}
+
+function saveSales() {
+  localStorage.setItem("sales", JSON.stringify(sales));
+}
+
+function sendToGoogleSheets(sale) {
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(sale)
+  });
+}
+
+function getCartTotal() {
+  return cart.reduce((sum, item) => sum + item.total, 0);
+}
+
+function toggleQuantityMenu(product, price, clickedButton) {
+  document.querySelectorAll(".quantity-menu").forEach(menu => {
+    menu.classList.remove("open");
+    menu.innerHTML = "";
+  });
+
+  document.querySelectorAll(".product-btn").forEach(button => {
+    button.classList.remove("active-product");
+  });
+
+  clickedButton.classList.add("active-product");
+
+  const menu = document.getElementById(product + "-menu");
+
+  for (let i = 1; i <= 10; i++) {
+    const button = document.createElement("button");
+    button.innerText = i;
+    button.onclick = () => addProduct(product, price, i);
+    menu.appendChild(button);
+  }
+
+  menu.classList.add("open");
+}
+
+function addProduct(product, price, quantity) {
+  const existing = cart.find(item => item.product === product);
+
+  if (existing) {
+    existing.quantity += quantity;
+    existing.total = existing.price * existing.quantity;
+  } else {
+    cart.push({
+      product: product,
+      price: price,
+      quantity: quantity,
+      total: price * quantity
+    });
+  }
+
+  closeMenus();
+  displayCart();
+}
+
+function closeMenus() {
+  document.querySelectorAll(".quantity-menu").forEach(menu => {
+    menu.classList.remove("open");
+    menu.innerHTML = "";
+  });
+
+  document.querySelectorAll(".product-btn").forEach(button => {
+    button.classList.remove("active-product");
+  });
+}
+
+function displayCart() {
+  const log = document.getElementById("cartLog");
+  const total = getCartTotal();
+
+  log.innerHTML = "";
+
+  if (cart.length === 0) {
+    log.innerHTML = `<div class="muted">No items added yet.</div>`;
+  }
+
+  cart.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "cart-item";
+
+    div.innerHTML = `
+      <strong>${item.product}</strong> x${item.quantity} = $${item.total.toFixed(2)}
+      <button class="remove-btn" onclick="removeItem(${index})">✕</button>
+    `;
+
+    log.appendChild(div);
+  });
+
+  document.getElementById("cartTotal").innerText = total.toFixed(2);
+
+  if (selectedPayment) {
+    showPaymentDetails(selectedPayment);
+  }
+}
+
+function removeItem(index) {
+  cart.splice(index, 1);
+  displayCart();
+}
+
+function selectPayment(payment, button) {
+  selectedPayment = payment;
+
+  button.parentElement.querySelectorAll("button").forEach(btn => {
+    btn.classList.remove("selected");
+  });
+
+  button.classList.add("selected");
+  showPaymentDetails(payment);
+}
+
+function showPaymentDetails(payment) {
+  const details = document.getElementById("paymentDetails");
+  const total = getCartTotal();
+
+  if (payment === "Zelle") {
+    details.innerHTML = `
+      <strong>Zelle Payment</strong><br>
+      Total: $${total.toFixed(2)}
+      <img src="IMG_1677.jpeg" class="qr" alt="Zelle QR Code">
+    `;
+  }
+
+  else if (payment === "Venmo") {
+    details.innerHTML = `
+      <strong>Venmo Payment</strong><br>
+      Total: $${total.toFixed(2)}
+      <img src="venmo-qr.png" class="qr" alt="Venmo QR Code">
+    `;
+  }
+
+  else if (payment === "Cash") {
+    details.innerHTML = `
+      <strong>Cash Payment</strong><br>
+      Total: $${total.toFixed(2)}
+      <input id="cashGiven" type="number" step="0.01" placeholder="Amount given" oninput="calculateChange()">
+      Change Due: $<span id="changeDue">0.00</span>
+    `;
+  }
+
+  else if (payment === "Card") {
+    details.innerHTML = `
+      <strong>Card Payment</strong><br>
+      Total: $${total.toFixed(2)}<br>
+      Use card reader, then submit purchase.
+    `;
+  }
+}
+
+function calculateChange() {
+  const total = getCartTotal();
+  const cashGiven = parseFloat(document.getElementById("cashGiven").value) || 0;
+  const change = cashGiven - total;
+
+  document.getElementById("changeDue").innerText =
+    change >= 0 ? change.toFixed(2) : "0.00";
+}
+
+function addEmployee() {
+  const input = document.getElementById("employeeInput");
+  const employee = input.value.trim().toUpperCase().slice(0, 3);
+
+  if (!employee) return;
+
+  if (!employees.includes(employee)) {
+    employees.push(employee);
+    saveEmployees();
+  }
+
+  input.value = "";
+  displayEmployees();
+}
+
+function displayEmployees() {
+  const log = document.getElementById("employeeLog");
+  log.innerHTML = "";
+
+  if (employees.length === 0) {
+    log.innerHTML = `<div class="muted">No active initials.</div>`;
+  }
+
+  employees.forEach((employee, index) => {
+    const div = document.createElement("div");
+    div.className = "employee-tag";
+
+    div.innerHTML = `
+      <span>${employee}</span>
+      <button class="remove-btn" onclick="removeEmployee(${index})">✕</button>
+    `;
+
+    log.appendChild(div);
+  });
+}
+
+function removeEmployee(index) {
+  employees.splice(index, 1);
+  saveEmployees();
+  displayEmployees();
+}
+
+function submitSale() {
+  if (cart.length === 0) {
+    alert("Add at least one product.");
+    return;
+  }
+
+  if (!selectedPayment) {
+    alert("Select payment method.");
+    return;
+  }
+
+  if (employees.length === 0) {
+    alert("Add initials.");
+    return;
+  }
+
+  const total = getCartTotal();
+  const now = new Date();
+
+  let cashGiven = "";
+  let changeDue = "";
+
+  if (selectedPayment === "Cash") {
+    cashGiven = parseFloat(document.getElementById("cashGiven")?.value) || 0;
+    changeDue = cashGiven - total;
+
+    if (cashGiven < total) {
+      alert("Cash given is less than total.");
+      return;
+    }
+  }
+
+  const sale = {
+    fundraiser: fundraiserName,
+    items: [...cart],
+    total: total,
+    payment: selectedPayment,
+    employees: [...employees],
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    cashGiven: cashGiven,
+    changeDue: changeDue
+  };
+
+  sales.push(sale);
+  saveSales();
+  sendToGoogleSheets(sale);
+
+  cart = [];
+  displayCart();
+  displaySales();
+
+  if (selectedPayment) {
+    showPaymentDetails(selectedPayment);
+  }
+}
+
+function displaySales() {
+  const log = document.getElementById("salesLog");
+  log.innerHTML = "";
+
+  if (sales.length === 0) {
+    log.innerHTML = `<div class="muted">No local sales logged.</div>`;
+  }
+
+  sales.slice().reverse().forEach(sale => {
+    const items = sale.items
+      .map(item => `${item.product} x${item.quantity}`)
+      .join(", ");
+
+    let cashInfo = "";
+
+    if (sale.payment === "Cash") {
+      cashInfo = `
+        <br>Cash Given: $${Number(sale.cashGiven).toFixed(2)}
+        <br>Change: $${Number(sale.changeDue).toFixed(2)}
+      `;
+    }
+
+    const div = document.createElement("div");
+    div.className = "sale";
+
+    div.innerHTML = `
+      <strong>$${sale.total.toFixed(2)}</strong><br>
+      ${items}<br>
+      Fundraiser: ${sale.fundraiser || "Unnamed Fundraiser"}<br>
+      Payment: ${sale.payment}${cashInfo}<br>
+      Initials: ${sale.employees.join(", ")}<br>
+      Time: ${sale.date} ${sale.time}
+    `;
+
+    log.appendChild(div);
+  });
+}
+
+function toggleSalesLog() {
+  const wrapper = document.getElementById("salesLogWrapper");
+  const button = document.querySelector(".collapse-btn");
+
+  wrapper.classList.toggle("open");
+  button.innerText = wrapper.classList.contains("open") ? "Hide" : "Show";
+}
+
+function clearSalesLog() {
+  if (confirm("Clear local sales log on this device? This will not delete Google Sheet records.")) {
+    sales = [];
+    localStorage.removeItem("sales");
+    displaySales();
+  }
+}
+
+displayFundraiserName();
+displayCart();
+displayEmployees();
+displaySales();
+</script>
+
+</body>
+</html>
